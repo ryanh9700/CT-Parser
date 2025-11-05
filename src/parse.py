@@ -3,19 +3,19 @@ from pathlib import Path
 import argparse
 
 def parseLocation(line):
-  if line[0] == "US":
-    return (line[2] + ", " + line[1])
+  if line[1] == "US":
+    return (line[3] + ", " + line[2])
   else:
-    raise SystemExit("\033[Error parsing location\033[0m")
+    raise SystemExit("\033[31mError parsing location\033[0m")
 
 
 def extract(fileName):
   CTNum = -1
-  ESPName = ""
-  ESPReceive = ""
-  NCMECReceive = ""
-  DOJReceive = ""
-  Location = ""
+  ESPName = "NONE"
+  ESPReceive = "NONE"
+  NCMECReceive = "NONE"
+  DOJReceive = "NONE"
+  Location = "NONE"
 
   with pdfplumber.open(fileName) as pdf:
     for page in pdf.pages:
@@ -28,35 +28,36 @@ def extract(fileName):
         if CTNum == -1 and "CyberTipline Report" in line:
           CTNum = line.split(' ')[2]
 
-          if str(fileName).split(' ')[1].split('.')[0] != CTNum:
-            raise TypeError(f"\n\033[31mFile name: {str(fileName).split('/')[1]} doesn't match CT Num: {CTNum}\033[0m")
+        # if str(fileName).split(' ')[1].split('.')[0] != CTNum:
+        #   raise SystemExit(f"\n\033[31mFile name: {str(fileName).split(' ')[1]} doesn't match CT Num: {CTNum}\033[0m")
 
         # ESP Name
-        if ESPName == "" and "Submitter:" in line:
-          ESPName = lines[counter+1].split(' ')[0]
+        if ESPName == "NONE" and "Submitter:" in line:
+          ESPName = lines[counter+1].split()[0]
 
         # ESP Recieve Date
-        if ESPReceive == "" and "Incident Time:" in line:
-          ESPReceive = line.split(' ')[0]
+        if ESPReceive == "NONE" and "Incident Time:" in line:
+          ESPReceive = line.split()[2]
 
         # NCMEC Recieve Date
-        if NCMECReceive == "" and "Received by NCMEC" in line:
-          NCMECReceive = line.split(' ')[4]
+        if NCMECReceive == "NONE" and "Received by NCMEC" in line:
+          NCMECReceive = line.split()[4]
 
         # DOJ Recieve Date
-        if DOJReceive == "" and "Time/Date was made available:" in line:
-          DOJReceive = line.split(' ')[4]
+        if DOJReceive == "NONE" and "Time/Date was made available:" in line:
+          DOJReceive = line.split()[4]
 
         # Suspected Location
-        if Location == "" and "Code Code" in line:
-          Location = parseLocation(lines[counter+1].split(' '))
+        if Location == "NONE" and "Code Code" in line:
+          Location = parseLocation(lines[counter+1].split())
           
         counter += 1
-
-  if CTNum == -1 or ESPName == "" or ESPReceive == "" or NCMECReceive == "" or DOJReceive == "" or Location == "":
-    raise SystemExit(f"\n\033[31mSomething went with wrong with file: {str(fileName).split('/')[1]}\033[0m")
+  
+  if CTNum == -1 or ESPName == "NONE" or ESPReceive == "NONE" or NCMECReceive == "NONE" or DOJReceive == "NONE":
+    raise SystemExit(f"\033[31mSomething went with wrong with file: {fileName.name}\033[0m")
 
   print(f"CT #: {CTNum}")
+  print(f"ESP-N: {ESPName}")
   print(f"ESP: {ESPReceive}")
   print(f"NCMEC: {NCMECReceive}")
   print(f"DOJ: {DOJReceive}")
@@ -71,13 +72,13 @@ folder = Path(args.folder)
 if not folder.exists() or not folder.is_dir():
   raise SystemExit(f"\033[31mNot a folder: {folder.resolve()}\033[0m")
 
-pdfs = sorted(list(folder.glob("*.pdf")) + list(folder.glob("*.PDF")))
+pdfs = sorted(list(folder.glob("*.pdf")))
 
 if not pdfs:
   raise SystemExit(f"\033[31mNo PDFs found in: {folder.resolve()}\033[0m")
 
 for indivPDF in pdfs:
-  try:
+  #try:
       extract(indivPDF)
-  except Exception as e:
-      print(f"\033[31mError with: {indivPDF.name}: {e}\033[0m")
+ # except Exception as e:
+  ##    raise SystemExit(f"\033[31mError with: {indivPDF.name}: {e}\033[0m")
