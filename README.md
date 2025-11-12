@@ -14,11 +14,13 @@ Visual Studio Code (aka VS Code) is an easy way to edit programs. It's not requi
 * Since some computers may not allow running downloaded files, it will work through downloading through Microsoft Store. Open MS Store, search "Visual Studio Code" and download the app.
 
 #### 3. Installing Libraries
-This uses a library named "pdfplumber" to parse PDF files. This needs to be installed by:
+This uses a libraries to parse PDF files. This needs to be installed by:
 * If VS Code is installed, open it and at the top left click "File" then "Open Folder..." and open "CT-Reader". Then at the top click "Terminal" then "New Terminal".
 * Otherwise, use the terminal to navigate to "CT-Reader".  
 
-Once inside the folder, type ```pip install pdfplumber``` into the terminal.
+Once inside the folder and in the terminal, type:  
+```pip install pdfplumber```  
+```pip install pgeocode```
 
 #### 4. Templates
 Ensure the "summary_templates.txt" file exists inside the "templates" folder and has the correct text.
