@@ -5,6 +5,7 @@ import argparse
 
 CTList = []
 redTotal = 0
+counter = 0
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE_PATH = PROJECT_ROOT / "templates" / "summary_template.txt"
 
@@ -23,7 +24,6 @@ def extract(fileName):
     for page in pdf.pages:
       text = page.extract_text()
       lines = [ln.strip() for ln in text.splitlines() if ln and ln.strip()]
-      counter = 0
 
       for line in lines:
         # Report Number
@@ -51,8 +51,6 @@ def extract(fileName):
         # Suspected Location
         if Location == "NONE" or "NM" not in Location:
           Location = helper.parseLocation(line.split())
-          
-        counter += 1
   
   # All of these should exist
   if CTNum == -1 or ESPName == "NONE" or ESPReceive == "NONE" or NCMECReceive == "NONE" or DOJReceive == "NONE":
@@ -68,8 +66,10 @@ def extract(fileName):
   if Location == "NONE" or "NM" not in Location:
     Location = helper.colorText(Location, "\033[31m")
     redTotal = redTotal + 1
+    CTList[counter] = helper.colorText(CTList[counter], "\033[31m")
   else:
     Location = helper.colorText(Location, "\033[32m")
+    CTList[counter] = helper.colorText(CTList[counter], "\033[32m")
 
   ESPReceive = helper.colorText(ESPReceive, "\033[32m")
   ESPName = helper.colorText(ESPName, "\033[32m")
@@ -107,6 +107,7 @@ if not pdfs:
 print(helper.colorText("Summary:", "\033[45m"))
 for indivPDF in pdfs:
   extract(indivPDF)
+  counter += 1
 
 # Print results
 helper.printResults(len(pdfs), CTList, redTotal)
