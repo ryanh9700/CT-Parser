@@ -1,1 +1,5 @@
 documents
+templates/summary_templateMain.txt
+src/__pycache__
+.DS_Store
+Testy
