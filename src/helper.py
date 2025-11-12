@@ -1,3 +1,8 @@
+import pgeocode as pg
+import re
+
+ZIP_RE = re.compile(r'^\d{5}(-\d{4})?$')  # 12345 or 12345-6789
+
 """ Returns text with a specific color"""
 # \033[41m red highlight
 # \033[0m red
@@ -7,23 +12,39 @@ def colorText(text, color):
   return color + text + "\033[0m"
 
 
+""" Get zip code """
+def extract_zip(tokens):
+  for t in tokens:
+      cand = re.sub(r'[^0-9-]', '', t)
+      if ZIP_RE.fullmatch(cand):
+          return cand.split('-')[0] 
+      
+  return None
+   
+
 """ Parses and returns a given location """
 def parseLocation(line):
-  if line[1] == "US":
+  if len(line) > 1 and line[1] == "US":
+    nomi = pg.Nominatim(line[1])
+    state = line[2]
     city = line[3]
+    zip = extract_zip(line)
+    
+    # Lookup city based on zip code
+    location_data = nomi.query_postal_code(zip)
+    if location_data is not None:
+        foundCity = location_data['place_name']
+        foundState = location_data['state_code']
 
-    if "Albuquer" in city:
-      city = "Albuquerque"
-    elif "Farmingto" in city:
-      city = "Farmington"
-    elif "Alamogord" in city:
-      city = "Alamogordo"
-    elif "Santa" in city:
-      city = "Santa Fe"
+        # Validate city
+        if (state == foundState and city in foundCity):
+           city = foundCity
+        else:
+           city = "[Attempted finding city but failed]"
 
-    return (city + ", " + line[2])
-  else:
-    return "NONE"
+    return (city + ", " + state)
+  
+  return "NONE"
   
   
 """ Prints final results """

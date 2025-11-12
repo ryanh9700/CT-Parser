@@ -49,8 +49,8 @@ def extract(fileName):
           DOJReceive = line.split()[4]
 
         # Suspected Location
-        if Location == "NONE" and "Code Code" in line:
-          Location = helper.parseLocation(lines[counter+1].split())
+        if Location == "NONE" or "NM" not in Location:
+          Location = helper.parseLocation(line.split())
           
         counter += 1
   
@@ -65,7 +65,7 @@ def extract(fileName):
 
   # Fill and color values
 
-  if Location == "NONE":
+  if Location == "NONE" or "NM" not in Location:
     Location = helper.colorText(Location, "\033[31m")
     redTotal = redTotal + 1
   else:
