@@ -1,0 +1,113 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ackerman Warrant Builder</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <button id="btnTemplate" class="button">New Template</button>
+      <button id="btnFolder" class="button">New PDF Folder</button>
+      <button id="btnStart" class="button" disabled>Start</button>
+      <div class="spacer"></div>
+      <button id="legendBtn" class="button" >Legend</button>
+      <button id="instructBtn" class="button" >Instructions</button>
+      <span class="divider">|</span>
+      <span id="templatePath" class="badge">No Template</span>
+    </header>
+
+    <div id="picker" class="picker">
+      <div class="inner" id="selectRegion">
+        <h2>Select PDF Folder</h2>
+        <div class="cta"><button id="btnSelectInside" class="button">Browse</button></div>
+      </div>
+    </div>
+
+    <div id="columns" class="columns" style="display:none">
+      <section class="panel">
+        <header><strong id="fileHeader">Files</strong></header>
+        <div id="files" class="list" aria-live="polite">
+          <table class="files-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>File</th>
+              </tr>
+            </thead>
+            <tbody id="filesBody"></tbody>
+          </table>
+        </div>
+      </section>
+      <section class="panel">
+        <header><strong id="outputHeader">Press Start</strong></header>
+        <pre id="output" aria-live="polite"></pre>
+      </section>
+            <section class="panel panel-results">
+        <header style="text-align: center;" ><strong>Results</strong></header>
+        <pre id="results" aria-live="polite"></pre>
+
+        <div id="disclaimer">
+          Note: Entries with "NONE" indicate likely a parsing error and should be manually verified.
+        </div>
+        <div class="results-actions">
+          <button id="btnCopySummary" class="button button-icon" disabled>
+            <span class="icon">📋</span>
+            <span>Copy Summary</span>
+          </button>
+          <button id="btnCopyCyberTips" class="button button-icon" disabled>
+            <span class="icon">📋</span>
+            <span>Copy CyberTips</span>
+          </button>
+          <button id="exportBtn" class="button button-icon" disabled>
+            <span class="icon">📝</span>
+            <span>Export to .docx</span>
+          </button>
+        </div>
+      </section>
+    </div>
+    
+    <div id="instructionsModal" class="modal hidden">
+      <div class="modal-dialog">
+        <h2>Instructions</h2>
+        <p>
+          1. Click <strong>New Template</strong> and select the warrant template (.txt).<br />
+          2. Click <strong>New PDF Folder</strong> (or Browse) and choose a folder containing <em>only</em> CyberTip PDFs.<br />
+          3. Click <strong>Start</strong> to process all PDFs and generate results.<br />
+          4. Use <strong>Copy Summary</strong> / <strong>Copy CyberTips</strong> to paste into your reports.<br /><br />
+        </p>
+        <h2>Additional</h2>
+        <p>
+          If something doesn't work or breaks, please feel free to email me at <strong>ryan.zhoss@gmail.com</strong>. The source code is also available at this <a href="https://github.com/ryanh9700/CT-Parser" target="_blank">GitHub respository</a> for modification.
+        </p>
+
+        <div class="modal-actions">
+          <button id="closeInstructions" class="button">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="legendModal" class="modal hidden">
+      <div class="modal-dialog">
+        <h2>Files Column</h2>
+        <p>
+          - <strong>Unparsed</strong> files are italiczed gray.<br />
+          - <strong>Parsed </strong> files are green or red for successfull, or failed parsing.<br />
+        </p>
+        <h2>Output Column</h2>
+        <p>
+          The top will display all CyberTip numbers. Below will output 
+        </p>
+        <h2>Result Column</h2>
+        <p>
+         dfd
+        </p>
+        <div class="modal-actions">
+          <button id="closeLegend" class="button">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/renderer.js"></script>
+  </body>
+</html>

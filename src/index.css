@@ -1,0 +1,308 @@
+/* src/styles.css */
+
+html, body{
+  height:100%;
+  margin:0;
+  overflow:hidden;
+}
+
+/* Design tokens */
+:root{
+  --border:#e5e7eb;
+  --muted:#000000;
+  --panel:#8766d6;
+  --radius:12px;
+}
+
+/* Your baseline */
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  margin:0;
+  color:#111827;
+}
+
+/* Top bar */
+.app-header{
+  display:flex; align-items:center; gap:12px;
+  padding:12px 16px; border-bottom:1px solid var(--border); position:sticky; top:0;
+  background:rgb(164, 163, 163);
+}
+.app-header .spacer{flex:1}
+
+/* Buttons */
+.button{
+  border:1px solid #d1d5db;
+  background:#e5e7eb;
+  border-radius:8px;
+  padding:8px 12px;
+  color:#000000;
+  cursor:pointer;
+}
+
+.button:disabled{
+  background:#e5e7eb;
+  border-color:#d1d5db;
+  color:#6b7280;
+  cursor:default;
+}
+
+.button.export-ready{
+  background:#0f72dc;
+  border-color:#055aa4;
+  color:#ffffff;
+  cursor:pointer;
+}
+
+.button.button-ready{
+  background:#22c55e;
+  border-color:#1da74f;
+  color:#ffffff;
+  cursor:pointer;
+}
+
+#btnSelectInside{
+  background:#8766d6;
+  border-color:#d1d5db;
+  color:#ffffff;
+  cursor:pointer;
+}
+
+.button.button-ready:hover{
+  background:#16a34a;
+}
+
+/* Initial picker (drag & drop) */
+.picker{
+  display:grid; 
+  place-items:center; 
+  height:calc(100vh - 57px - 32px);
+  color:var(--muted); border:2px dashed var(--border); margin:16px; border-radius:var(--radius);
+}
+.picker.dragover{ background:#f5faff; border-color:#93c5fd; }
+.picker .inner{text-align:center}
+
+
+.columns{
+  display:grid;
+  grid-template-columns:0.7fr 2.0fr 0.5fr; 
+  gap:16px; 
+  padding:16px; 
+  height:calc(100vh - 57px - 32px);
+  box-sizing:border-box;
+}
+
+.panel{
+  border:1px 
+  solid var(--border);
+  border-radius:var(--radius);
+  display:flex; 
+  flex-direction:column; 
+  overflow:hidden;
+}
+
+.panel > header{
+  background:var(--panel); border-bottom:1px solid var(--border); padding:10px 12px; font-weight:600;
+}
+
+.panel pre{
+  margin:0; 
+  padding:12px; 
+  overflow:auto; 
+  white-space:pre-wrap; 
+  word-break:break-word; 
+  flex:1;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace; 
+  font-size:12px; 
+  line-height:1.5;
+}
+
+.file{ 
+  padding:6px 0;
+  border-bottom:
+  1px dashed #eee 
+}
+
+#files {
+  margin:0; 
+  padding:12px; 
+  overflow:auto; 
+  word-break:break-word; 
+  flex:1;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace; 
+  font-size:12px; 
+  line-height:1.5;
+}
+
+/* Small utilities */
+.badge{ 
+  font-size:11px; 
+  color:#d4d4d4; 
+  background:#db0202; 
+  padding:2px 6px; 
+  border-radius:999px; 
+}
+
+.badge.badge-ready{ 
+  color:#111827; 
+  background:#dae02c; 
+  border-color:#000000;
+}
+
+/* ANSI color support for output box */
+.ansi-green {
+  color: #16a34a; /* green */
+}
+
+.ansi-red {
+  color: #dc2626; /* red */
+}
+
+.ansi-bg-red {
+  background-color: #dc2626;
+  color: #ffffff;
+}
+
+.ansi-magenta {
+  color: #a855f7;
+}
+
+/* Optional: spacing for each output line */
+.output-line {
+  white-space: pre-wrap;
+}
+
+.sticky-header {
+  position:static;
+  top:0;
+  background-color: #ddd;
+  padding: 10px;
+}
+
+/* Container for the two copy buttons */
+.results-actions{
+  padding:8px 12px;
+  border-top:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+#disclaimer{
+  font-size:12px; 
+  border-top:1px solid var(--border);
+  color:#c00;
+  padding:8px 12px;
+}
+
+/* Make the copy buttons look nice with the icon */
+.button-icon{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  width:100%;
+}
+
+.button-icon .icon{
+  font-size:14px;
+}
+
+#instructBtn, #legendBtn{
+  background:#8766d6;
+  border-color:#d1d5db;
+  color:#ffffff;
+  cursor:pointer;
+}
+
+.divider {
+  color: #8766d6;
+  font-weight: bold;
+}
+
+/* Generic hidden helper */
+.hidden{
+  display:none !important;
+}
+
+/* Fullscreen overlay */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+/* The actual popup box */
+.modal-dialog{
+  background:#ffffff;
+  padding:16px 20px;
+  border-radius:var(--radius);
+  max-width:480px;
+  width:90%;
+  box-shadow:0 10px 30px rgba(0,0,0,0.25);
+}
+
+.modal-dialog h2{
+  margin-top:0;
+  margin-bottom:8px;
+}
+
+.modal-dialog p{
+  margin:0 0 16px 0;
+  font-size:14px;
+  line-height:1.5;
+}
+
+.modal-actions{
+  display:flex;
+  justify-content:flex-end;
+}
+
+.files-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  margin: 0;
+  font-size: 14px;
+}
+
+
+.files-table th,
+.files-table td {
+  padding: 6px 8px;
+  border-bottom: 1px dashed #ccc;
+  text-align: left;
+}
+
+/* Status styles */
+.file-status-pending {
+  color: #666;
+  font-style: italic;
+}
+
+.file-status-ok {
+  color: #0a0;
+  font-weight: bold;
+}
+
+.file-status-error {
+  color: #c00;
+  font-weight: bold;
+}
+
+/* Optional: tint file name based on status */
+.file-name-ok {
+  color: #0a0;
+}
+
+.file-name-error {
+  color: #c00;
+}
+
+/* Optional: highlight currently-processing file */
+.file-row-active {
+  background-color: #f0f8ff;
+}
