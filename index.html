@@ -89,16 +89,20 @@
 
     <div id="legendModal" class="modal hidden">
       <div class="modal-dialog">
-        <h2>Files Column</h2>
+        <h3>Template</h3>
+        <p>
+          A .txt file that uses "{ESPReceive}, {ESPName}, {NCMECReceive}, {Location}, {CTNum}, {DOJReceive}, {ESPName}" to create a message.<br />
+        </p>
+        <h3>Files Column</h3>
         <p>
           - <strong>Unparsed</strong> files are italiczed gray.<br />
           - <strong>Parsed </strong> files are green or red for successfull, or failed parsing.<br />
         </p>
-        <h2>Output Column</h2>
+        <h3>Output Column</h3>
         <p>
           The top will display all CyberTip numbers. Below will output 
         </p>
-        <h2>Result Column</h2>
+        <h3>Result Column</h3>
         <p>
          dfd
         </p>
@@ -107,6 +111,49 @@
         </div>
       </div>
     </div>
+
+   <div id="exportWindow" class="modal hidden">
+  <div class="modal-dialog">
+    <h2>Export</h2>
+
+    <div class="form-group upload-row">
+      <button id="uploadTemplate" class="button">Upload .docx</button>
+      <div id="uploadText" class="upload-label">No template selected</div>
+    </div>
+
+    <div class="form-group">
+      <label for="exportFileName"><strong>Save as: </strong></label>
+      <input
+        type="text"
+        id="exportFileName"
+        placeholder="Warrant_Summary.docx"
+      />
+    </div>
+
+    <div class="form-group">
+      <label><strong>Save to:</strong></label>
+        <div class="export-save-row">
+          <span id="exportSavePathLabel" class="export-path">No folder selected</span>
+          <button id="btnBrowseSaveLocation" class="button">Browse</button>
+        </div>
+    </div>
+
+
+    <p class="export-note">
+      Note: Colors will be removed and "<strong>NONE</strong>" will still be exported.
+    </p>
+
+    <div class="modal-actions">
+      <button id="closeExport" class="button">Cancel</button>
+      <div class="spacer"></div>
+      <button id="confirmExport" class="button button-icon">
+        <span class="icon">📝</span>
+        <span>Export</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 
     <script type="module" src="/src/renderer.js"></script>
   </body>

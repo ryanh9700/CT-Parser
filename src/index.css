@@ -256,9 +256,11 @@ body{
   line-height:1.5;
 }
 
-.modal-actions{
-  display:flex;
-  justify-content:flex-end;
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;  /* right-align buttons */
+  gap: 0.75rem;               /* space *between* buttons */
+  margin-top: 1.5rem;
 }
 
 .files-table {
@@ -305,4 +307,43 @@ body{
 /* Optional: highlight currently-processing file */
 .file-row-active {
   background-color: #f0f8ff;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.export-save-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.export-save-row input {
+  flex: 1;
+}
+
+.export-note {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.modal-actions #closeExport {
+  border: 1px solid rgba(255, 255, 255, 0.2); /* or your neutral color */
+}
+
+.upload-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem; /* space between button and text */
+}
+
+.upload-label {
+  font-size: 0.9rem;
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px; /* or whatever fits your layout */
 }

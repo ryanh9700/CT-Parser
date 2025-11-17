@@ -16,8 +16,14 @@ const legendBtn = document.getElementById("legendBtn");
 const legendModal  = document.getElementById('legendModal');
 const closeLegend  = document.getElementById('closeLegend');
 
-const exportBtn = document.getElementById("exportBtn");
-
+const startExportBtn = document.getElementById("exportBtn");
+const exportWindow = document.getElementById("exportWindow");
+const closeExportWindow = document.getElementById("closeExport");
+const finalExportBtn = document.getElementById("confirmExport");
+const browseBtn = document.getElementById("btnBrowseSaveLocation");
+const templateInput = document.getElementById('uploadTemplate');
+const saveFileName = document.getElementById("exportFileName");
+const uploadText = document.getElementById("uploadText");
 
 const picker = document.getElementById("picker");
 const columns = document.getElementById("columns");
@@ -37,6 +43,8 @@ let allCyberTips = "";
 let copyReady = false;
 let fileRowCount = 0;
 
+let saveDirectoryPath = null;
+let templatePath = null;
 
 function showColumns() {
   picker.style.display = "none";
@@ -198,17 +206,17 @@ function setResults(text) {
 function setResultButtonsEnabled(enabled) {
   btnCopySummary.disabled = !enabled;
   btnCopyCyberTips.disabled = !enabled;
-  exportBtn.disabled = !enabled;
+  startExportBtn.disabled = !enabled;
 
   if (enabled) {
     btnCopySummary.classList.add("button-ready");
     btnCopyCyberTips.classList.add("button-ready");
-    exportBtn.classList.add("export-ready");
+    startExportBtn.classList.add("export-ready");
     copyReady = true;
   } else {
     btnCopySummary.classList.remove("button-ready");
     btnCopyCyberTips.classList.remove("button-ready");
-    exportBtn.classList.remove("export-ready");
+    startExportBtn.classList.remove("export-ready");
     copyReady = false;
   }
 }
@@ -347,8 +355,75 @@ legendBtn.addEventListener('click', () => {
 });
 
 
+startExportBtn.addEventListener('click', () => {
+  if (exportWindow.classList.contains("hidden")) {
+    exportWindow.classList.remove('hidden');
+  } else {
+    exportWindow.classList.add('hidden');
+  }
+});
 
-///
+closeExportWindow.addEventListener('click', () => {
+  exportWindow.classList.add('hidden');
+});
+
+exportWindow.addEventListener('click', (e) => {
+  if (e.target === exportWindow){
+    exportWindow.classList.add('hidden');
+  }
+});
+
+
+templateInput.onclick = async () => {
+  const file = await window.api.chooseExportTemplate();
+  if (!file) return;
+
+  templatePath = file;
+
+  // Get file name
+  let temp = templatePath.split(/[\\/]/); 
+  uploadText.textContent = temp[temp.length-1];
+
+  // Update finalExportBtn visual
+  if (saveDirectoryPath && saveFileName && saveDirectoryPath) {
+    finalExportBtn.classList.add("button-ready");
+  }
+}
+
+
+// Browse for save location (Electron-side folder picker)
+browseBtn.onclick = async () => {
+  const folderPath = await window.api.pickFolder();
+
+  if (folderPath) {
+    saveDirectoryPath = folderPath;
+    document.getElementById("exportSavePathLabel").textContent = saveDirectoryPath;
+  }
+
+  // Update finalExportBtn visual
+  if (saveDirectoryPath && saveFileName && saveDirectoryPath) {
+    finalExportBtn.classList.add("button-ready");
+  }
+}
+
+// Confirm export
+finalExportBtn.addEventListener('click', async () => {
+  const fileName = saveFileName.value.trim();
+
+  // if (!fileName.toLowerCase().endsWith('.docx')) {
+  //   fileName += '.docx';
+  // }
+
+  let values = {
+    "{allCTNums}": "test",
+    "{fullSummary}": "test2"
+  }
+ 
+  await window.api.exportDocx(templatePath, saveDirectoryPath, fileName, values);
+
+  exportWindow.classList.add('hidden');
+});
+
 
 
 function createPopUp(text) {

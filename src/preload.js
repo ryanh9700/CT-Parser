@@ -7,8 +7,7 @@ contextBridge.exposeInMainWorld("api", {
   parseFolder: (folderPath, templatePath) => ipcRenderer.invoke("parse-folder", { folderPath, templatePath }),
   listFolder: (folderPath) => ipcRenderer.invoke("list-folder", folderPath),
 
-  onProgressFile: (cb) => ipcRenderer.on("progress:file", (_e, name) => cb(name)),
-  onProgressOut: (cb)  => ipcRenderer.on("progress:out",  (_e, line) => cb(line)),
-  onProgressDone: (cb) => ipcRenderer.on("progress:done", (_e, code) => cb(code)),
-  onProgressError: (cb) => ipcRenderer.on("progress:error", (_e, err) => cb(err)),
+  pickFolder: () => ipcRenderer.invoke('pick-folder'),
+  chooseExportTemplate: () => ipcRenderer.invoke('choose-export-template'),
+  exportDocx: (templatePath, saveDir, fileName, values) => ipcRenderer.invoke('export-docx', { templatePath, saveDir, fileName, values }),
 });

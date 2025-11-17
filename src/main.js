@@ -1,18 +1,17 @@
 import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron';
-import started from 'electron-squirrel-startup';
+
 const { spawn } = require("child_process");
-const path = require("path");
+const path = require("node:path");
 const fs = require("fs");
 
 let win;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (started) {
+if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
 const createWindow = () => {
-  // Create the browser window.
   win = new BrowserWindow({
     width: 1000,
     height: 650,
@@ -21,12 +20,13 @@ const createWindow = () => {
     },
   });
 
-  // and load the index.html of the app.
+  
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     win.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
     win.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
   }
+  
 
   // Open the DevTools.
   // win.webContents.openDevTools();
@@ -175,3 +175,76 @@ function runPy(folderPath, templatePath) {
     });
   });
 }
+
+ipcMain.handle('pick-folder', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory', 'createDirectory'],
+  });
+
+  if (result.canceled || !result.filePaths.length) return null;
+  
+  return result.filePaths[0];
+});
+
+ipcMain.handle("choose-export-template", async () => {
+  const { canceled, filePaths } = await dialog.showOpenDialog(win, {
+    title: "Choose a .docx",
+    properties: ["openFile"],
+    filters: [{ name: "Docx", extensions: ["docx"] }],
+  });
+
+  if (canceled || !filePaths[0]) {
+    return null;
+  }
+
+  return filePaths[0];
+});
+
+ipcMain.handle('export-docx', async (event, { templatePath, saveDir, fileName, values }) => {
+  return new Promise((resolve, reject) => {
+    const parsePath = path.resolve(
+      __dirname,
+      "..",
+      "..",
+      "src",
+      "Python",
+      "buildWordDocument.py"
+    );
+
+    console.log("Running Python:", parsePath);
+    console.log(saveDir);
+    const py = spawn(
+      process.platform === "win32" ? "python" : "python3", 
+      ["-u", parsePath, templatePath, saveDir, fileName, JSON.stringify(values)]
+    );
+
+    let stdoutData = "";
+    let stdoutError = "";
+
+    py.stdout.on("data", (chunk) => {
+      const text = chunk.toString();
+      stdoutData += text; 
+    });
+
+    py.stderr.on("data", (err) => {
+      stdoutError += err;
+      reject(stdoutError)
+    });
+
+    py.on("error", (err) => {
+      stdoutError += err;
+      reject(stdoutError)
+    });
+
+    py.on("close", (code) => {
+      // Success
+      if (code === 0) {
+        resolve(stdoutData);
+
+      // Fail
+      } else {
+        resolve(stdoutError);
+      }
+    });
+  });
+});
