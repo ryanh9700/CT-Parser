@@ -48,7 +48,7 @@
         <pre id="results" aria-live="polite"></pre>
 
         <div id="disclaimer">
-          Note: Entries with "NONE" indicate likely a parsing error and should be manually verified.
+          <strong><u>Note:</u></strong> Entries with "NONE" likely indicate a parsing error and should be manually verified.
         </div>
         <div class="results-actions">
           <button id="btnCopySummary" class="button button-icon" disabled>
@@ -69,14 +69,18 @@
     
     <div id="instructionsModal" class="modal hidden">
       <div class="modal-dialog">
-        <h2>Instructions</h2>
+        <h2 style="text-align: center;">Instructions</h2>
+          <hr>
         <p>
           1. Click <strong>New Template</strong> and select the warrant template (.txt).<br />
           2. Click <strong>New PDF Folder</strong> (or Browse) and choose a folder containing <em>only</em> CyberTip PDFs.<br />
           3. Click <strong>Start</strong> to process all PDFs and generate results.<br />
-          4. Use <strong>Copy Summary</strong> / <strong>Copy CyberTips</strong> to paste into your reports.<br /><br />
+          4. Use <strong>Copy Summary</strong> / <strong>Copy CyberTips</strong> to paste into your reports.<br />
+          5. Use <strong>Export to .docx</strong> and to generate a finished Word document.<br />
+          <br />
+          <br />
         </p>
-        <h2>Additional</h2>
+        <hr>
         <p>
           If something doesn't work or breaks, please feel free to email me at <strong>ryan.zhoss@gmail.com</strong>. The source code is also available at this <a href="https://github.com/ryanh9700/CT-Parser" target="_blank">GitHub respository</a> for modification.
         </p>
@@ -89,23 +93,65 @@
 
     <div id="legendModal" class="modal hidden">
       <div class="modal-dialog">
-        <h3>Template</h3>
+        <h2 style="text-align: center;">Legend</h2>
+          <hr>
         <p>
-          A .txt file that uses "{ESPReceive}, {ESPName}, {NCMECReceive}, {Location}, {CTNum}, {DOJReceive}, {ESPName}" to create a message.<br />
+          This section explains the program functions and elements. Additionally, it details 
+          how to setup the initial template (.txt) and template (.docx) files.
         </p>
-        <h3>Files Column</h3>
+          <hr>
+        <h3>Creating Summary Template</h3>
         <p>
-          - <strong>Unparsed</strong> files are italiczed gray.<br />
-          - <strong>Parsed </strong> files are green or red for successfull, or failed parsing.<br />
+          <u>Create a .txt file that uses:</u> <br />
+          - "{ESPReceive}": Date the ESP detected activity. <br />
+          - "{ESPName}": Name of the ESP.<br />
+          - "{NCMECReceive}": Date NCMEC recevied tip.<br />
+          - "{Location}": Approximate location of suspect. <br />
+          - "{CTNum}": CyberTip report number. <br />
+          - "{DOJReceive}": Date DOJ recieved CyberTip.<br /> <br/>
+          The program will try to fill in fields according to a summary template. <br/>
+          <blockquote>
+            <p>Example: "The CT number is {CTNum} and the ESP is {ESPName}."</p>
+          </blockquote>
         </p>
-        <h3>Output Column</h3>
+          <hr>
+        <h3>Creating a Word Document</h3>
         <p>
-          The top will display all CyberTip numbers. Below will output 
-        </p>
-        <h3>Result Column</h3>
+         <u>Create a .docx file that uses:</u><br />
+          - "{{ESPNameBold}}": Bolded name of Electronic Service Provider.<br />
+          - "{{ESPName}}"    : Regular name of Electronic Serice Provider.<br />
+          - "{{allCTNums}}"  : All CyberTip report numbers.<br />
+          - "{{fullSummary}}": Full parse summary based on uploaded .txt template.<br/><br/>
+          The program will use the parsed results for a template Word document. <br/>
+          </p>
+          <blockquote>
+            <p>Example: "All CT numbers are {{allCTNums}} submitted by {{ESPNameBold}}."</p>
+          </blockquote>
+        
+          
+        
+          <hr>
+        <h3>Files Column Coloring</h3>
         <p>
-         dfd
+          Parsed files are green (all items were found) or red. Red does <u>not</u> mean an entry doesn't exist, likely it was a parsing error from a differently formatted CyberTip.<br />
         </p>
+          <hr>
+        <h3>Output Column Coloring</h3>
+        <p>
+          The top will display all CyberTip numbers; if all entries were found the CT number will be green, otherwise it will be red if there was an issue. <br/><br/>
+          The summary section will output the parsed results based on the template .txt file; 
+          a green entry means it was successfully found in the PDF, otherwise a red "NONE" means 
+          the parser couldn't find that value. Red does <u>not</u> mean an entry doesn't exist,
+           likely it was a parsing error from a differently formatted CyberTip.<br />
+        </p>
+          <hr>
+        <h3>Important Note</h3>
+          <p>
+          The location of each CyberTip is found through searching by the zip code instead of provided location.
+          The provided location can parse wrongly depending on long city names or if the city's name has 2+ words
+          so searching by zip code is easier. However, if a zip code doesn't exist (if very new) it may return an uncatched error. <br/><br/>
+          The full list of zip codes can be found <a href="https://symerio.github.io/postal-codes-data/data/geonames/US.txt" target="_blank">here</a>.
+          </p>
         <div class="modal-actions">
           <button id="closeLegend" class="button">Close</button>
         </div>
@@ -114,19 +160,28 @@
 
    <div id="exportWindow" class="modal hidden">
   <div class="modal-dialog">
-    <h2>Export</h2>
-
+    <h2 style="text-align: center;">Export</h2>
+     <hr>
     <div class="form-group upload-row">
       <button id="uploadTemplate" class="button">Upload .docx</button>
       <div id="uploadText" class="upload-label">No template selected</div>
     </div>
 
     <div class="form-group">
-      <label for="exportFileName"><strong>Save as: </strong></label>
+      <label for="exportFileName"><strong>Save as (.docx): </strong></label>
       <input
         type="text"
         id="exportFileName"
         placeholder="Warrant_Summary.docx"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="finalESPName"><strong>Service Provider: </strong></label>
+      <input
+        type="text"
+        id="finalESPName"
+        placeholder="Sample ESP Name"
       />
     </div>
 
@@ -140,13 +195,13 @@
 
 
     <p class="export-note">
-      Note: Colors will be removed and "<strong>NONE</strong>" will still be exported.
+      Note: All inserted items will be highlighted yellow and "<strong>NONE</strong>" will still be exported.
     </p>
 
     <div class="modal-actions">
       <button id="closeExport" class="button">Cancel</button>
       <div class="spacer"></div>
-      <button id="confirmExport" class="button button-icon">
+      <button id="confirmExport" class="button button-icon" disabled>
         <span class="icon">📝</span>
         <span>Export</span>
       </button>

@@ -21,9 +21,11 @@ const exportWindow = document.getElementById("exportWindow");
 const closeExportWindow = document.getElementById("closeExport");
 const finalExportBtn = document.getElementById("confirmExport");
 const browseBtn = document.getElementById("btnBrowseSaveLocation");
-const templateInput = document.getElementById('uploadTemplate');
+const DOCXTemplateInput = document.getElementById('uploadTemplate');
 const saveFileName = document.getElementById("exportFileName");
 const uploadText = document.getElementById("uploadText");
+
+const ESPNameLabel = document.getElementById("finalESPName");
 
 const picker = document.getElementById("picker");
 const columns = document.getElementById("columns");
@@ -44,9 +46,43 @@ let copyReady = false;
 let fileRowCount = 0;
 
 let saveDirectoryPath = null;
-let templatePath = null;
+let DOCXTemplatePath = null;
+
+let typedESPName = null;
+let intendedSaveFileName = saveFileName.placeholder;
+let parseProgressActive = false;
+let parseSummaryBuffer = "";
+let parseStreamBuffer = "";
+let parseTotalsReached = false;
+
+window.api.onParseProgress((chunk) => {
+  if (!parseProgressActive || parseTotalsReached) return;
+
+  parseStreamBuffer += chunk;
+  const markerIndex = parseStreamBuffer.indexOf("TR:");
+  let summaryChunk;
+
+  if (markerIndex === -1) {
+    summaryChunk = parseStreamBuffer;
+    parseStreamBuffer = "";
+  } else {
+    summaryChunk = parseStreamBuffer.slice(0, markerIndex);
+    parseStreamBuffer = parseStreamBuffer.slice(markerIndex);
+    parseTotalsReached = true;
+  }
+
+  if (!summaryChunk) return;
+
+  parseSummaryBuffer += summaryChunk;
+  appendOutput(summaryChunk);
+  updateTable(parseSummaryBuffer);
+});
 
 function showColumns() {
+  if (templatePathBadge.textContent == "No Template") {
+    outputHeader.textContent = "> Upload a Template to Begin <";
+  }
+
   picker.style.display = "none";
   columns.style.display = "grid";
 }
@@ -69,20 +105,17 @@ function appendFile(name) {
   tr.appendChild(nameCell);
 
   filesBody.appendChild(tr);
-
-  // scroll the container, not the tbody itself
-  filesEl.scrollTop = filesEl.scrollHeight;
 }
 
 function updateTable(summary) {
   let temp = summary.split(/\r?\n/);
   temp = temp.filter(item => item !== "")
 
-  for (let i = 0; i < temp.length; i++) {
-    const entry = temp[i];
+  const rows = filesBody.querySelectorAll("tr");
+  const limit = Math.min(temp.length, rows.length);
 
-    const firstInstance = entry.indexOf("[42m")+4;
-    const fileName = entry.substring(firstInstance, entry.indexOf("[0m", firstInstance)-1).trim();
+  for (let i = 0; i < limit; i++) {
+    const entry = temp[i];
 
     if (temp[i].includes("[31m")) {
       setFileStatus("error", i);
@@ -116,7 +149,7 @@ function appendOutput(text) {
   line.innerHTML = html;
 
   outputEl.appendChild(line);
-  //outputEl.scrollTop = outputEl.scrollHeight;
+  outputEl.scrollTop = outputEl.scrollHeight;
 }
 
 
@@ -150,20 +183,36 @@ btnTemplate.onclick = async () => {
   let fileName = temp[temp.length-1];
   templatePathBadge.textContent = fileName;
   templatePathBadge.classList.add("badge-ready");
+
+  outputHeader.textContent = "Press Start";
+
+  setResultButtonsEnabled(false);
   updateStartButtonState();
 }
 
 btnStart.onclick = async () => {
   if (currentTemplatePath == null || currentFolderPath == null) return;
   
-  resetFileStatuses();
+  saveFileName.value = "";
+  DOCXTemplatePath = null;
+  typedESPName = null;
+  ESPNameLabel.value = "";
+  saveDirectoryPath = null;
+  uploadText.textContent = "No template selected"
+  exportSavePathLabel.textContent = "No folder selected"
 
+  resetFileStatuses();
   setResultButtonsEnabled(false);
   resultsEl.textContent = "";
   outputEl.textContent = "";
+  parseSummaryBuffer = "";
+  parseStreamBuffer = "";
+  parseTotalsReached = false;
+  parseProgressActive = true;
 
   outputHeader.textContent = "Running..."
   let text = await window.api.parseFolder(currentFolderPath, currentTemplatePath);
+  parseProgressActive = false;
 
   if (!Array.isArray(text)) {
     outputHeader.textContent = "Error Encountered"
@@ -179,7 +228,6 @@ btnStart.onclick = async () => {
   createPopUp(allCyberTips);
 
   // Summary Results
-  appendOutput(summary);
   updateTable(summary);
 
   // Results
@@ -201,6 +249,7 @@ function setResults(text) {
   });
 
   setResultButtonsEnabled(true);
+  outputEl.scrollTop = outputEl.scrollHeight;
 }
 
 function setResultButtonsEnabled(enabled) {
@@ -247,7 +296,6 @@ async function selectFolderAndRun() {
 
   currentFolderPath = folder;
 
-
   // Add files to column
   const files = await window.api.listFolder(folder);
   if (!isValidFolder(files)) return;
@@ -264,12 +312,11 @@ async function selectFolderAndRun() {
     appendFile(files[i]);
   }
 
+  setResultButtonsEnabled(false);
   updateStartButtonState();
 }
 
 function isValidFolder(files) {
-  if (files.length == 0) return false;
-
   for (let i = 0; i < files.length; i++) {
     const temp = files[i].split(".");
     const ext = temp[temp.length-1];
@@ -277,6 +324,7 @@ function isValidFolder(files) {
     if (ext == "pdf") return true;
   }
 
+  currentFolderPath = null;
   return false;
 }
 
@@ -295,7 +343,6 @@ function setFileStatus(status, i) {
   } else if (status === "error" || status === "red") {
     nameCell.classList.add("file-name-error");
   }
-  
 }
 
 function resetFileStatuses() {
@@ -374,53 +421,94 @@ exportWindow.addEventListener('click', (e) => {
 });
 
 
-templateInput.onclick = async () => {
+DOCXTemplateInput.onclick = async () => {
   const file = await window.api.chooseExportTemplate();
   if (!file) return;
 
-  templatePath = file;
+  DOCXTemplatePath = file;
 
-  // Get file name
-  let temp = templatePath.split(/[\\/]/); 
+  // Get file name of template
+  let temp = DOCXTemplatePath.split(/[\\/]/); 
   uploadText.textContent = temp[temp.length-1];
 
   // Update finalExportBtn visual
-  if (saveDirectoryPath && saveFileName && saveDirectoryPath) {
+  console.log("Template path: " + DOCXTemplatePath);
+  console.log("File name: " + intendedSaveFileName);
+  console.log("ESP: " + typedESPName);
+  console.log("Save: " + saveDirectoryPath);
+
+  if (DOCXTemplatePath && intendedSaveFileName && typedESPName && saveDirectoryPath) {
+    finalExportBtn.disabled = false;
     finalExportBtn.classList.add("button-ready");
   }
 }
-
 
 // Browse for save location (Electron-side folder picker)
 browseBtn.onclick = async () => {
   const folderPath = await window.api.pickFolder();
 
-  if (folderPath) {
-    saveDirectoryPath = folderPath;
-    document.getElementById("exportSavePathLabel").textContent = saveDirectoryPath;
-  }
+  if (!folderPath) return; 
+
+  saveDirectoryPath = folderPath;
+  document.getElementById("exportSavePathLabel").textContent = saveDirectoryPath;
 
   // Update finalExportBtn visual
-  if (saveDirectoryPath && saveFileName && saveDirectoryPath) {
+  if (DOCXTemplatePath && intendedSaveFileName && typedESPName && saveDirectoryPath) {
+    finalExportBtn.disabled = false;
     finalExportBtn.classList.add("button-ready");
   }
 }
 
+saveFileName.addEventListener('input', async () => {
+  intendedSaveFileName = saveFileName.value.trim();
+
+  // Update finalExportBtn visual
+  if (DOCXTemplatePath && intendedSaveFileName && typedESPName && saveDirectoryPath) {
+    finalExportBtn.disabled = false;
+    finalExportBtn.classList.add("button-ready");
+  } else {
+    finalExportBtn.disabled = true;
+    finalExportBtn.classList.remove("button-ready");
+  }
+});
+
+
+ESPNameLabel.addEventListener('input', async () => {
+  typedESPName = ESPNameLabel.value.trim();
+
+  // Update finalExportBtn visual
+  if (DOCXTemplatePath && intendedSaveFileName && typedESPName && saveDirectoryPath) {
+    finalExportBtn.disabled = false;
+    finalExportBtn.classList.add("button-ready");
+  } else {
+    finalExportBtn.disabled = true;
+    finalExportBtn.classList.remove("button-ready");
+  }
+});
+
 // Confirm export
 finalExportBtn.addEventListener('click', async () => {
-  const fileName = saveFileName.value.trim();
+  if (!intendedSaveFileName) intendedSaveFileName = saveFileName.placeholder;
 
-  // if (!fileName.toLowerCase().endsWith('.docx')) {
-  //   fileName += '.docx';
-  // }
-
-  let values = {
-    "{allCTNums}": "test",
-    "{fullSummary}": "test2"
+  if (!intendedSaveFileName.toLowerCase().endsWith('.docx')) {
+    intendedSaveFileName += '.docx';
   }
- 
-  await window.api.exportDocx(templatePath, saveDirectoryPath, fileName, values);
 
+  console.log(intendedSaveFileName);
+  console.log(typedESPName);
+
+  const data = {
+    "{ESPNameBold}": typedESPName,
+    "{ESPName}": typedESPName,
+    "{allCTNums}": stripAnsi(allCyberTips).trim(),
+    "{fullSummary}": stripAnsi(summary).trim()
+  }
+
+  const jsonString = JSON.stringify(data);
+  await window.api.writeJSON(jsonString);
+ 
+  let results = await window.api.exportDocx(DOCXTemplatePath, saveDirectoryPath, intendedSaveFileName);
+  console.log(results);
   exportWindow.classList.add('hidden');
 });
 

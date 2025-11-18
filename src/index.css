@@ -1,169 +1,207 @@
-/* src/styles.css */
-
-html, body{
-  height:100%;
-  margin:0;
-  overflow:hidden;
+/* Layout base */
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
 }
 
 /* Design tokens */
-:root{
-  --border:#e5e7eb;
-  --muted:#000000;
-  --panel:#8766d6;
-  --radius:12px;
+:root {
+  --bg: #f9fafb;
+  --panel-bg: #ffffff;
+  --header-bg: #f3f4f6;
+  --border: #d1d5db;
+  --muted: #6b7280;
+  --text: #1f2937;
+
+  --accent: #2563eb;        /* Blue 600 */
+  --accent-hover: #1d4ed8;  /* Blue 700 */
+  --accent-soft: #eff6ff;
+
+  --radius: 12px;
+
+  /* Status colors you care about */
+  --ok: #16a34a;
+  --ok-strong: #0a0;
+  --error: #dc2626;
+  --error-strong: #c00;
 }
 
 /* Your baseline */
-body{
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-  margin:0;
-  color:#111827;
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  margin: 0;
+  color: var(--text);
+  background: var(--bg);
 }
 
 /* Top bar */
-.app-header{
-  display:flex; align-items:center; gap:12px;
-  padding:12px 16px; border-bottom:1px solid var(--border); position:sticky; top:0;
-  background:rgb(164, 163, 163);
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--header-bg);
 }
-.app-header .spacer{flex:1}
+.app-header .spacer {
+  flex: 1;
+}
 
 /* Buttons */
-.button{
-  border:1px solid #d1d5db;
-  background:#e5e7eb;
-  border-radius:8px;
-  padding:8px 12px;
-  color:#000000;
-  cursor:pointer;
+.button {
+  border: 1px solid var(--border);
+  background: #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #111827;
+  cursor: pointer;
+  font-size: 0.9rem;
 }
 
-.button:disabled{
-  background:#e5e7eb;
-  border-color:#d1d5db;
-  color:#6b7280;
-  cursor:default;
+.button:disabled {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  color: #6b7280;
+  cursor: default;
 }
 
-.button.export-ready{
-  background:#0f72dc;
-  border-color:#055aa4;
-  color:#ffffff;
-  cursor:pointer;
+/* Export primary state */
+.button.export-ready {
+  background: var(--accent);
+  border-color: var(--accent-hover);
+  color: #ffffff;
 }
 
-.button.button-ready{
-  background:#22c55e;
-  border-color:#1da74f;
-  color:#ffffff;
-  cursor:pointer;
+/* Green "ready" state (Start, copy, etc.) */
+.button.button-ready {
+  background: var(--ok);
+  border-color: #1da74f;
+  color: #ffffff;
+}
+.button.button-ready:hover {
+  background: #16a34a;
 }
 
-#btnSelectInside{
-  background:#8766d6;
-  border-color:#d1d5db;
-  color:#ffffff;
-  cursor:pointer;
-}
-
-.button.button-ready:hover{
-  background:#16a34a;
+/* Special header buttons */
+#btnSelectInside,
+#instructBtn,
+#legendBtn {
+  background: var(--accent);
+  border-color: var(--accent-hover);
+  color: #ffffff;
 }
 
 /* Initial picker (drag & drop) */
-.picker{
-  display:grid; 
-  place-items:center; 
-  height:calc(100vh - 57px - 32px);
-  color:var(--muted); border:2px dashed var(--border); margin:16px; border-radius:var(--radius);
+.picker {
+  display: grid;
+  place-items: center;
+  height: calc(100vh - 57px - 32px);
+  color: var(--muted);
+  border: 2px dashed var(--border);
+  margin: 16px;
+  border-radius: var(--radius);
+  background: #f3f4f6;
 }
-.picker.dragover{ background:#f5faff; border-color:#93c5fd; }
-.picker .inner{text-align:center}
-
-
-.columns{
-  display:grid;
-  grid-template-columns:0.7fr 2.0fr 0.5fr; 
-  gap:16px; 
-  padding:16px; 
-  height:calc(100vh - 57px - 32px);
-  box-sizing:border-box;
+.picker.dragover {
+  background: #eff6ff;
+  border-color: #93c5fd;
 }
-
-.panel{
-  border:1px 
-  solid var(--border);
-  border-radius:var(--radius);
-  display:flex; 
-  flex-direction:column; 
-  overflow:hidden;
+.picker .inner {
+  text-align: center;
 }
 
-.panel > header{
-  background:var(--panel); border-bottom:1px solid var(--border); padding:10px 12px; font-weight:600;
+/* Main columns layout */
+.columns {
+  display: grid;
+  grid-template-columns: 0.7fr 2.0fr 0.5fr;
+  gap: 16px;
+  padding: 16px;
+  height: calc(100vh - 57px - 32px);
+  box-sizing: border-box;
 }
 
-.panel pre{
-  margin:0; 
-  padding:12px; 
-  overflow:auto; 
-  white-space:pre-wrap; 
-  word-break:break-word; 
-  flex:1;
-  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace; 
-  font-size:12px; 
-  line-height:1.5;
+/* Panels */
+.panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--panel-bg);
 }
 
-.file{ 
-  padding:6px 0;
-  border-bottom:
-  1px dashed #eee 
+.panel > header {
+  background: var(--accent-soft);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Outputs */
+.panel pre {
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  flex: 1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* File list */
+.file {
+  padding: 6px 0;
+  border-bottom: 1px dashed #eee;
 }
 
 #files {
-  margin:0; 
-  padding:12px; 
-  overflow:auto; 
-  word-break:break-word; 
-  flex:1;
-  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace; 
-  font-size:12px; 
-  line-height:1.5;
+  margin: 0;
+  padding: 12px;
+  overflow-x: auto;
+  overflow-y: auto;
+  flex: 1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 /* Small utilities */
-.badge{ 
-  font-size:11px; 
-  color:#d4d4d4; 
-  background:#db0202; 
-  padding:2px 6px; 
-  border-radius:999px; 
+.badge {
+  font-size: 11px;
+  color: #f9fafb;
+  background: var(--error-strong);
+  padding: 2px 6px;
+  border-radius: 999px;
 }
 
-.badge.badge-ready{ 
-  color:#111827; 
-  background:#dae02c; 
-  border-color:#000000;
+.badge.badge-ready {
+  color: #111827;
+  background: #bfdbfe;
+  border: 1px solid #60a5fa;
 }
 
 /* ANSI color support for output box */
 .ansi-green {
-  color: #16a34a; /* green */
+  color: var(--ok);
 }
 
 .ansi-red {
-  color: #dc2626; /* red */
+  color: var(--error);
 }
 
 .ansi-bg-red {
-  background-color: #dc2626;
+  background-color: var(--error);
   color: #ffffff;
 }
 
 .ansi-magenta {
-  color: #a855f7;
+  color: #2563eb;
 }
 
 /* Optional: spacing for each output line */
@@ -172,97 +210,96 @@ body{
 }
 
 .sticky-header {
-  position:static;
-  top:0;
-  background-color: #ddd;
+  position: static;
+  top: 0;
+  background-color: #e5e7eb;
   padding: 10px;
 }
 
-/* Container for the two copy buttons */
-.results-actions{
-  padding:8px 12px;
-  border-top:1px solid var(--border);
-  display:flex;
-  flex-direction:column;
-  gap:8px;
+/* Container for copy/export buttons */
+.results-actions {
+  padding: 8px 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-#disclaimer{
-  font-size:12px; 
-  border-top:1px solid var(--border);
-  color:#c00;
-  padding:8px 12px;
+#disclaimer {
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+  color: var(--error-strong);
+  padding: 8px 12px;
+  opacity: 0.8;
 }
 
-/* Make the copy buttons look nice with the icon */
-.button-icon{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
-  width:100%;
+/* Icon buttons */
+.button-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
 }
 
-.button-icon .icon{
-  font-size:14px;
+.button-icon .icon {
+  font-size: 14px;
 }
 
-#instructBtn, #legendBtn{
-  background:#8766d6;
-  border-color:#d1d5db;
-  color:#ffffff;
-  cursor:pointer;
-}
-
+/* Separator in header */
 .divider {
-  color: #8766d6;
+  color: var(--accent);
   font-weight: bold;
 }
 
 /* Generic hidden helper */
-.hidden{
-  display:none !important;
+.hidden {
+  display: none !important;
 }
 
 /* Fullscreen overlay */
-.modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.45);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:9999;
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
 }
 
 /* The actual popup box */
-.modal-dialog{
-  background:#ffffff;
-  padding:16px 20px;
-  border-radius:var(--radius);
-  max-width:480px;
-  width:90%;
-  box-shadow:0 10px 30px rgba(0,0,0,0.25);
+.modal-dialog {
+  background: #ffffff;
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  max-width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 90%;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
 }
 
-.modal-dialog h2{
-  margin-top:0;
-  margin-bottom:8px;
+.modal-dialog h2 {
+  margin-top: 0;
+  margin-bottom: 8px;
 }
 
-.modal-dialog p{
-  margin:0 0 16px 0;
-  font-size:14px;
-  line-height:1.5;
+.modal-dialog p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .modal-actions {
   display: flex;
-  justify-content: flex-end;  /* right-align buttons */
-  gap: 0.75rem;               /* space *between* buttons */
+  justify-content: flex-end;
+  gap: 0.75rem;
   margin-top: 1.5rem;
 }
 
+/* Files table */
 .files-table {
   width: 100%;
   border-collapse: collapse;
@@ -271,7 +308,6 @@ body{
   font-size: 14px;
 }
 
-
 .files-table th,
 .files-table td {
   padding: 6px 8px;
@@ -279,36 +315,41 @@ body{
   text-align: left;
 }
 
+.file-name {
+  white-space: nowrap;
+}
+
 /* Status styles */
 .file-status-pending {
-  color: #666;
+  color: #6b7280;
   font-style: italic;
 }
 
 .file-status-ok {
-  color: #0a0;
+  color: var(--ok-strong);
   font-weight: bold;
 }
 
 .file-status-error {
-  color: #c00;
+  color: var(--error-strong);
   font-weight: bold;
 }
 
-/* Optional: tint file name based on status */
+/* Tint file name based on status */
 .file-name-ok {
-  color: #0a0;
+  color: var(--ok-strong);
 }
 
 .file-name-error {
-  color: #c00;
+  color: var(--error-strong);
 }
 
-/* Optional: highlight currently-processing file */
+/* Highlight currently-processing file */
 .file-row-active {
-  background-color: #f0f8ff;
+  background-color: #eff6ff;
 }
 
+/* Form stuff (export) */
 .form-group {
   margin-bottom: 1rem;
 }
@@ -329,14 +370,11 @@ body{
   opacity: 0.8;
 }
 
-.modal-actions #closeExport {
-  border: 1px solid rgba(255, 255, 255, 0.2); /* or your neutral color */
-}
-
+/* Upload row */
 .upload-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem; /* space between button and text */
+  gap: 0.75rem;
 }
 
 .upload-label {
@@ -345,5 +383,109 @@ body{
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 250px; /* or whatever fits your layout */
+  max-width: 250px;
+}
+
+/* Tighter, form-style dialog just for the Export modal */
+#exportWindow .modal-dialog {
+  max-width: 420px;
+  width: 95%;
+  padding: 20px 22px;
+}
+
+/* Center the title and tone down the <hr> */
+#exportWindow h2 {
+  margin: 0 0 0.75rem 0;
+}
+
+#exportWindow hr {
+  margin: 0 0 1rem 0;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+/* Export form: stack label + input nicely */
+#exportWindow .form-group {
+  margin-bottom: 0.85rem;
+}
+
+#exportWindow .form-group label {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+#exportWindow .form-group input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+/* Template upload row: feels like a single control */
+#exportWindow .upload-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: #f3f4f6;
+}
+
+#exportWindow .upload-label {
+  font-size: 0.85rem;
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#exportWindow .export-save-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+#exportWindow .export-path {
+  flex: 1;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #f3f4f6;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+#exportWindow .modal-actions {
+  margin-top: 1.25rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* Secondary-style Cancel button */
+#closeExport {
+  background: transparent;
+  color: #374151;
+}
+
+/* Make Export look like the clear primary */
+#confirmExport.button-icon {
+  min-width: 110px;
+  justify-content: center;
+}
+
+/* Tighten spacing inside the legend modal */
+#legendModal .modal-dialog h3 {
+  margin-bottom: 0.2rem;
+}
+
+#legendModal .modal-dialog p {
+  margin-top: 0.3rem;
+  margin-bottom: 0.75rem;
 }

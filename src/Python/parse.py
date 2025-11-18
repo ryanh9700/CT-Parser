@@ -90,7 +90,7 @@ def extract(fileName):
       DOJReceive=DOJReceive,
   )
 
-  print("\n" + narrative)
+  print(narrative + "\n")
 
 
   

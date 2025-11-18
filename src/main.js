@@ -135,7 +135,7 @@ function runPy(folderPath, templatePath) {
       "parse.py"
     );
 
-    console.log("Running Python:", parsePath, "on folder:", folderPath);
+    console.log("\nRunning Python:", parsePath, "on folder:", folderPath);
 
     const py = spawn(
       process.platform === "win32" ? "python" : "python3", 
@@ -150,6 +150,10 @@ function runPy(folderPath, templatePath) {
       const text = chunk.toString();
       stdoutData += text; 
 
+      if (win && !win.isDestroyed()) {
+        win.webContents.send("parse-progress", text);
+      }
+
       final = stdoutData.split("TR:");
     });
 
@@ -159,8 +163,8 @@ function runPy(folderPath, templatePath) {
     });
 
     py.on("error", (err) => {
-      const text = chunk.toString();
-      stdoutError += text;
+      console.error(err);
+      stdoutError += String(err);
     });
 
     py.on("close", (code) => {
@@ -200,7 +204,7 @@ ipcMain.handle("choose-export-template", async () => {
   return filePaths[0];
 });
 
-ipcMain.handle('export-docx', async (event, { templatePath, saveDir, fileName, values }) => {
+ipcMain.handle('export-docx', async (event, { templatePath, saveDir, fileName }) => {
   return new Promise((resolve, reject) => {
     const parsePath = path.resolve(
       __dirname,
@@ -211,11 +215,11 @@ ipcMain.handle('export-docx', async (event, { templatePath, saveDir, fileName, v
       "buildWordDocument.py"
     );
 
-    console.log("Running Python:", parsePath);
+    console.log("\nRunning Python:", parsePath);
     console.log(saveDir);
     const py = spawn(
       process.platform === "win32" ? "python" : "python3", 
-      ["-u", parsePath, templatePath, saveDir, fileName, JSON.stringify(values)]
+      ["-u", parsePath, templatePath, saveDir, fileName]
     );
 
     let stdoutData = "";
@@ -226,14 +230,14 @@ ipcMain.handle('export-docx', async (event, { templatePath, saveDir, fileName, v
       stdoutData += text; 
     });
 
-    py.stderr.on("data", (err) => {
-      stdoutError += err;
-      reject(stdoutError)
+    py.stderr.on("data", (chunk) => {
+      const text = chunk.toString();
+      stdoutError += text; 
+      console.error(text);
     });
 
     py.on("error", (err) => {
-      stdoutError += err;
-      reject(stdoutError)
+      reject(err)
     });
 
     py.on("close", (code) => {
@@ -247,4 +251,18 @@ ipcMain.handle('export-docx', async (event, { templatePath, saveDir, fileName, v
       }
     });
   });
+});
+
+ipcMain.handle('write-JSON', async (event, { data }) => {
+  try {
+    const jsonPath = path.resolve(__dirname, "..", "..", "resources", "results.json");
+    await fs.promises.mkdir(path.dirname(jsonPath), { recursive: true });
+    await fs.promises.writeFile(jsonPath, data, "utf-8");
+    console.log("Wrote JSON to", jsonPath);
+    return { ok: true };
+
+  } catch (err) {
+    console.error("Failed to write JSON:", err);
+    throw err;
+  }
 });

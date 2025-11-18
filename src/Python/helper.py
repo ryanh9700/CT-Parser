@@ -51,11 +51,6 @@ def parseLocation(line):
 """ Prints final results """
 def printResults(numPDFs, CTList, numRed):
   print()
-  # print(colorText(f"Total in folder: {numPDFs} files.", "\033[45m") + "\n")
-  # print(colorText(f"Processed: {len(CTList)} files.", "\33[42m"))
-  # print(colorText(f"No Location: {numRed} files.", "\33[41m") + "\n")
-
-
   print("TR:", end='')
   for i in range(len(CTList)):
     if i != len(CTList)-1:
