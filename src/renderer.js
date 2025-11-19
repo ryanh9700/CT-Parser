@@ -25,6 +25,10 @@ const DOCXTemplateInput = document.getElementById('uploadTemplate');
 const saveFileName = document.getElementById("exportFileName");
 const uploadText = document.getElementById("uploadText");
 
+const exportStatusWindow = document.getElementById("exportStatusWindow");
+const exportText = document.getElementById("exportText");
+const exportCloseBtn = document.getElementById("closeExportStatusBtn");
+
 const ESPNameLabel = document.getElementById("finalESPName");
 
 const picker = document.getElementById("picker");
@@ -47,6 +51,7 @@ let fileRowCount = 0;
 
 let saveDirectoryPath = null;
 let DOCXTemplatePath = null;
+let resultsJsonPath = null;
 
 let typedESPName = null;
 let intendedSaveFileName = saveFileName.placeholder;
@@ -200,6 +205,7 @@ btnStart.onclick = async () => {
   saveDirectoryPath = null;
   uploadText.textContent = "No template selected"
   exportSavePathLabel.textContent = "No folder selected"
+  resultsJsonPath = null;
 
   resetFileStatuses();
   setResultButtonsEnabled(false);
@@ -378,11 +384,7 @@ legendModal.addEventListener('click', (e) => {
 });
 
 instructBtn.addEventListener('click', () => {
-  if (instructionsModal.classList.contains("hidden")) {
-    instructionsModal.classList.remove('hidden');
-  } else {
-    instructionsModal.classList.add('hidden');
-  }
+  instructionsModal.classList.remove('hidden');
 });
 
 closeInstructions.addEventListener('click', () => {
@@ -394,20 +396,12 @@ closeLegend.addEventListener('click', () => {
 });
 
 legendBtn.addEventListener('click', () => {
-  if (legendModal.classList.contains("hidden")) {
     legendModal.classList.remove('hidden');
-  } else {
-    legendModal.classList.add('hidden');
-  }
 });
 
 
 startExportBtn.addEventListener('click', () => {
-  if (exportWindow.classList.contains("hidden")) {
-    exportWindow.classList.remove('hidden');
-  } else {
-    exportWindow.classList.add('hidden');
-  }
+  exportWindow.classList.remove('hidden');
 });
 
 closeExportWindow.addEventListener('click', () => {
@@ -432,10 +426,10 @@ DOCXTemplateInput.onclick = async () => {
   uploadText.textContent = temp[temp.length-1];
 
   // Update finalExportBtn visual
-  console.log("Template path: " + DOCXTemplatePath);
-  console.log("File name: " + intendedSaveFileName);
-  console.log("ESP: " + typedESPName);
-  console.log("Save: " + saveDirectoryPath);
+  // console.log("Template path: " + DOCXTemplatePath);
+  // console.log("File name: " + intendedSaveFileName);
+  // console.log("ESP: " + typedESPName);
+  // console.log("Save: " + saveDirectoryPath);
 
   if (DOCXTemplatePath && intendedSaveFileName && typedESPName && saveDirectoryPath) {
     finalExportBtn.disabled = false;
@@ -494,9 +488,6 @@ finalExportBtn.addEventListener('click', async () => {
     intendedSaveFileName += '.docx';
   }
 
-  console.log(intendedSaveFileName);
-  console.log(typedESPName);
-
   const data = {
     "{ESPNameBold}": typedESPName,
     "{ESPName}": typedESPName,
@@ -505,13 +496,38 @@ finalExportBtn.addEventListener('click', async () => {
   }
 
   const jsonString = JSON.stringify(data);
-  await window.api.writeJSON(jsonString);
- 
-  let results = await window.api.exportDocx(DOCXTemplatePath, saveDirectoryPath, intendedSaveFileName);
-  console.log(results);
+  const writeResult = await window.api.writeJSON(jsonString);
+  resultsJsonPath = writeResult?.jsonPath || null;
+
+  if (!resultsJsonPath) {
+    showExportResult("Failed to locate JSON path for export.");
+    return;
+  }
+
+  const result = await window.api.exportDocx(DOCXTemplatePath, saveDirectoryPath, intendedSaveFileName, resultsJsonPath);
   exportWindow.classList.add('hidden');
+  showExportResult(result);
 });
 
+function showExportResult(result) {
+  exportStatusWindow.classList.remove('hidden');
+  if (result) {
+    exportText.textContent = stripAnsi(result);
+  } else {
+    exportText.textContent = "Something else went wrong with exporting.";
+  }
+}
+
+exportStatusWindow.addEventListener('click', (e) => {
+  if (e.target === exportStatusWindow){
+    exportStatusWindow.classList.add('hidden');
+  }
+});
+
+
+exportCloseBtn.addEventListener('click', () => {
+  exportStatusWindow.classList.add('hidden');
+});
 
 
 function createPopUp(text) {

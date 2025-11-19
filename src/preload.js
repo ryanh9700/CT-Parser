@@ -10,6 +10,6 @@ contextBridge.exposeInMainWorld("api", {
 
   pickFolder: () => ipcRenderer.invoke('pick-folder'),
   chooseExportTemplate: () => ipcRenderer.invoke('choose-export-template'),
-  exportDocx: (templatePath, saveDir, fileName) => ipcRenderer.invoke('export-docx', { templatePath, saveDir, fileName }),
+  exportDocx: (templatePath, saveDir, fileName, resultsPath) => ipcRenderer.invoke('export-docx', { templatePath, saveDir, fileName, resultsPath }),
   writeJSON: (data) => ipcRenderer.invoke('write-JSON', { data }),
 });

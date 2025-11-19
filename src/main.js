@@ -1,14 +1,67 @@
 import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron';
 
-const { spawn } = require("child_process");
+const { spawn, spawnSync } = require("child_process");
 const path = require("node:path");
 const fs = require("fs");
+
+const REQUIRED_PYTHON_MODULES = ["pdfplumber", "docxtpl"];
+
+function hasPythonModules(pythonPath) {
+  try {
+    const check = spawnSync(
+      pythonPath,
+      ["-c", `import ${REQUIRED_PYTHON_MODULES.join(", ")}`],
+      { stdio: "ignore" }
+    );
+    return check.status === 0;
+  } catch (err) {
+    return false;
+  }
+}
+
+function resolvePythonExecutable() {
+  const candidates = [
+    process.env.PYTHON_EXECUTABLE,
+    "python3",
+    "/opt/homebrew/bin/python3",
+    "/usr/local/bin/python3",
+    "/usr/bin/python3",
+    process.platform === "win32" ? "python" : null,
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    if (hasPythonModules(candidate)) {
+      return candidate;
+    }
+  }
+
+  console.warn(
+    "Falling back to system python. Install required modules or set PYTHON_EXECUTABLE."
+  );
+  return process.platform === "win32" ? "python" : "python3";
+}
+
+const PYTHON_BIN = resolvePythonExecutable();
+
+function resolvePythonScript(scriptName) {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, "Python", scriptName);
+  }
+
+  return path.resolve(__dirname, "..", "..", "src", "Python", scriptName);
+}
 
 let win;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (require('electron-squirrel-startup')) {
-  app.quit();
+if (process.platform === 'win32') {
+  try {
+    const squirrelStartup = require('electron-squirrel-startup');
+    if (squirrelStartup) {
+      app.quit();
+    }
+  } catch (err) {
+  }
 }
 
 const createWindow = () => {
@@ -126,21 +179,11 @@ ipcMain.handle("parse-folder", async (_evt, { folderPath, templatePath }) => {
 
 function runPy(folderPath, templatePath) {
   return new Promise((resolve, reject) => {
-    const parsePath = path.resolve(
-      __dirname,
-      "..",
-      "..",
-      "src",
-      "Python",
-      "parse.py"
-    );
+    const parsePath = resolvePythonScript("parse.py");
 
     console.log("\nRunning Python:", parsePath, "on folder:", folderPath);
 
-    const py = spawn(
-      process.platform === "win32" ? "python" : "python3", 
-      ["-u", parsePath, folderPath, templatePath]
-    );
+    const py = spawn(PYTHON_BIN, ["-u", parsePath, folderPath, templatePath]);
 
     let stdoutData = "";
     let stdoutError = "";
@@ -204,23 +247,13 @@ ipcMain.handle("choose-export-template", async () => {
   return filePaths[0];
 });
 
-ipcMain.handle('export-docx', async (event, { templatePath, saveDir, fileName }) => {
+ipcMain.handle('export-docx', async (event, { templatePath, saveDir, fileName, resultsPath }) => {
   return new Promise((resolve, reject) => {
-    const parsePath = path.resolve(
-      __dirname,
-      "..",
-      "..",
-      "src",
-      "Python",
-      "buildWordDocument.py"
-    );
+    const parsePath = resolvePythonScript("buildWordDocument.py");
 
     console.log("\nRunning Python:", parsePath);
     console.log(saveDir);
-    const py = spawn(
-      process.platform === "win32" ? "python" : "python3", 
-      ["-u", parsePath, templatePath, saveDir, fileName]
-    );
+    const py = spawn(PYTHON_BIN, ["-u", parsePath, templatePath, saveDir, fileName, resultsPath]);
 
     let stdoutData = "";
     let stdoutError = "";
@@ -255,11 +288,16 @@ ipcMain.handle('export-docx', async (event, { templatePath, saveDir, fileName })
 
 ipcMain.handle('write-JSON', async (event, { data }) => {
   try {
-    const jsonPath = path.resolve(__dirname, "..", "..", "resources", "results.json");
-    await fs.promises.mkdir(path.dirname(jsonPath), { recursive: true });
+    const resourcesDir = app.isPackaged
+      ? path.join(app.getPath("userData"), "resources")
+      : path.resolve(__dirname, "..", "..", "resources");
+
+    await fs.promises.mkdir(resourcesDir, { recursive: true });
+    const jsonPath = path.join(resourcesDir, "results.json");
+
     await fs.promises.writeFile(jsonPath, data, "utf-8");
     console.log("Wrote JSON to", jsonPath);
-    return { ok: true };
+    return { ok: true, jsonPath };
 
   } catch (err) {
     console.error("Failed to write JSON:", err);

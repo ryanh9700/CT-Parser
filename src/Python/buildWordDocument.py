@@ -99,6 +99,10 @@ parser.add_argument(
     default="Warrant_Output.docx",
     help="Name of the output .docx file (default: Warrant_Output.docx).",
 )
+parser.add_argument(
+    "resultsJson",
+    help="Path to the generated results JSON file."
+)
 args = parser.parse_args()
 
 TEMPLATE_PATH = Path(args.template)
@@ -110,8 +114,12 @@ if not SAVE_PATH.is_dir():
     raise SystemExit(f"\033[41mNot a valid save path:\033[0m {SAVE_PATH.resolve()}")
 
 OUTPUT_PATH = SAVE_PATH / args.outputName
+RESULTS_JSON_PATH = Path(args.resultsJson)
 
-with open('resources/results.json', 'r') as file:
+if not RESULTS_JSON_PATH.is_file():
+    raise SystemExit(f"\033[41mResults JSON not found:\033[0m {RESULTS_JSON_PATH}")
+
+with open(RESULTS_JSON_PATH, 'r') as file:
     data = json.load(file)
 
 try:
