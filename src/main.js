@@ -4,7 +4,7 @@ const { spawn, spawnSync } = require("child_process");
 const path = require("node:path");
 const fs = require("fs");
 
-const REQUIRED_PYTHON_MODULES = ["pdfplumber", "docxtpl"];
+const REQUIRED_PYTHON_MODULES = ["pdfplumber", "docxtpl", "pgeocode"];
 
 function hasPythonModules(pythonPath) {
   try {
