@@ -66,10 +66,12 @@ window.api.onParseProgress((chunk) => {
   parseStreamBuffer += chunk;
   const markerIndex = parseStreamBuffer.indexOf("TR:");
   let summaryChunk;
+  console.log(summaryChunk);
 
   if (markerIndex === -1) {
     summaryChunk = parseStreamBuffer;
     parseStreamBuffer = "";
+
   } else {
     summaryChunk = parseStreamBuffer.slice(0, markerIndex);
     parseStreamBuffer = parseStreamBuffer.slice(markerIndex);
@@ -222,6 +224,7 @@ btnStart.onclick = async () => {
 
   if (!Array.isArray(text)) {
     outputHeader.textContent = "Error Encountered"
+    console.log(text)
     createPopUp(text);
     return;
   }

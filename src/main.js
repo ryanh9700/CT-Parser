@@ -1,54 +1,46 @@
 import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron';
 
-const { spawn, spawnSync } = require("child_process");
+const { spawn } = require("child_process");
 const path = require("node:path");
 const fs = require("fs");
 
-const REQUIRED_PYTHON_MODULES = ["pdfplumber", "docxtpl", "pgeocode"];
+function resolveExecutable(scriptName) {
+  const exeName = `${path.parse(scriptName).name}.exe`;
 
-function hasPythonModules(pythonPath) {
-  try {
-    const check = spawnSync(
-      pythonPath,
-      ["-c", `import ${REQUIRED_PYTHON_MODULES.join(", ")}`],
-      { stdio: "ignore" }
-    );
-    return check.status === 0;
-  } catch (err) {
-    return false;
-  }
-}
+  const searchPaths = app.isPackaged
+    ? [
+        path.join(process.resourcesPath, "dist", exeName),
+        path.join(app.getAppPath?.() ?? "", exeName),
+      ].filter(Boolean)
+    : [
+        path.resolve(__dirname, "..", "..", "dist", exeName),
+      ];
 
-function resolvePythonExecutable() {
-  const candidates = [
-    process.env.PYTHON_EXECUTABLE,
-    "python3",
-    "/opt/homebrew/bin/python3",
-    "/usr/local/bin/python3",
-    "/usr/bin/python3",
-    process.platform === "win32" ? "python" : null,
-  ].filter(Boolean);
-
-  for (const candidate of candidates) {
-    if (hasPythonModules(candidate)) {
+  for (const candidate of searchPaths) {
+    if (fs.existsSync(candidate)) {
       return candidate;
     }
   }
 
-  console.warn(
-    "Falling back to system python. Install required modules or set PYTHON_EXECUTABLE."
-  );
-  return process.platform === "win32" ? "python" : "python3";
+  return null;
 }
 
-const PYTHON_BIN = resolvePythonExecutable();
-
-function resolvePythonScript(scriptName) {
-  if (app.isPackaged) {
-    return path.join(process.resourcesPath, "Python", scriptName);
+function getPythonCommand(scriptName, args = []) {
+  const exePath = resolveExecutable(scriptName);
+  if (!exePath) {
+    throw new Error(`Unable to locate executable for ${scriptName}`);
   }
 
-  return path.resolve(__dirname, "..", "..", "src", "Python", scriptName);
+  return { command: exePath, args };
+}
+
+function spawnPythonProcess(command, args) {
+  const env = {
+    ...process.env,
+    PYTHONUNBUFFERED: "1",
+  };
+
+  return spawn(command, args, { env });
 }
 
 let win;
@@ -80,24 +72,18 @@ const createWindow = () => {
     win.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
   }
   
-
-  // Open the DevTools.
   // win.webContents.openDevTools();
 
   win.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url); // Open the URL in the user's default browser
-    return { action: 'deny' }; // Prevent Electron from opening the URL internally
+    shell.openExternal(details.url); 
+    return { action: 'deny' };
   });
 };
 
 // This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   createWindow();
 
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
@@ -164,26 +150,13 @@ ipcMain.handle("list-folder", async (_evt, folderPath) => {
 });
 
 ipcMain.handle("parse-folder", async (_evt, { folderPath, templatePath }) => {
-  console.warn("running parse-folder with:", folderPath);
-
-  try {
-    const result = await runPy(folderPath, templatePath);
-    return result;
-
-  } catch (err) {
-    console.error("Python error:", err);
-    throw err; // propagates back to renderer
-  }
-});
-
-
-function runPy(folderPath, templatePath) {
   return new Promise((resolve, reject) => {
-    const parsePath = resolvePythonScript("parse.py");
+    const { command, args } = getPythonCommand("parse.py", [
+      folderPath,
+      templatePath,
+    ]);
 
-    console.log("\nRunning Python:", parsePath, "on folder:", folderPath);
-
-    const py = spawn(PYTHON_BIN, ["-u", parsePath, folderPath, templatePath]);
+    const py = spawnPythonProcess(command, args);
 
     let stdoutData = "";
     let stdoutError = "";
@@ -202,6 +175,7 @@ function runPy(folderPath, templatePath) {
 
     py.stderr.on("data", (chunk) => {
       const text = chunk.toString();
+      console.error(text)
       stdoutError += text;
     });
 
@@ -220,8 +194,9 @@ function runPy(folderPath, templatePath) {
         resolve(stdoutError);
       }
     });
-  });
-}
+  })
+});
+
 
 ipcMain.handle('pick-folder', async () => {
   const result = await dialog.showOpenDialog({
@@ -249,11 +224,16 @@ ipcMain.handle("choose-export-template", async () => {
 
 ipcMain.handle('export-docx', async (event, { templatePath, saveDir, fileName, resultsPath }) => {
   return new Promise((resolve, reject) => {
-    const parsePath = resolvePythonScript("buildWordDocument.py");
+    const { command, args } = getPythonCommand("buildWordDocument.py", [
+      templatePath,
+      saveDir,
+      fileName,
+      resultsPath,
+    ]);
 
-    console.log("\nRunning Python:", parsePath);
+    console.log("\nRunning Python:", command);
     console.log(saveDir);
-    const py = spawn(PYTHON_BIN, ["-u", parsePath, templatePath, saveDir, fileName, resultsPath]);
+    const py = spawnPythonProcess(command, args);
 
     let stdoutData = "";
     let stdoutError = "";
