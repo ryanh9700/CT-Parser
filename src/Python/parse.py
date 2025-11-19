@@ -19,8 +19,14 @@ def extract(fileName):
   with pdfplumber.open(fileName) as pdf:
     global redTotal
 
+    text = ""
     for page in pdf.pages:
-      text = page.extract_text()
+      try:
+        text = page.extract_text()
+      except Exception as e:
+        # print(f"\033[41mError extracting text: {e}\n Try rerunning.\033[0m")
+        continue
+  
       lines = [ln.strip() for ln in text.splitlines() if ln and ln.strip()]
       counter = 0
 
@@ -90,7 +96,7 @@ def extract(fileName):
       DOJReceive=DOJReceive,
   )
 
-  print(narrative + "\n")
+  print(narrative + "\n", flush=True)
 
 
   
